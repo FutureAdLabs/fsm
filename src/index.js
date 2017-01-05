@@ -71,7 +71,7 @@ export default class Machine extends erx.Bus<State> {
   }
 
   send(event: Event, data: any): boolean {
-    if (this.transitioning) {
+    if (!this.state || !this.states[this.state] || this.transitioning) {
       return false;
     }
     const prev: State = this.state;
