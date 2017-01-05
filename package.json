@@ -1,6 +1,6 @@
 {
   "name": "@adludio/fsm",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Finite state machines over erx",
   "main": "index.js",
   "scripts": {
