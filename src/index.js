@@ -59,9 +59,14 @@ export default class Machine extends erx.Bus<State> {
     if (tFn != null) {
       this.transitioning = true;
       p(tFn(this, data)).then((change) => {
-        this.transitioning = false;
-        if (change) {
-          finish(next);
+         if (change instanceof Promise) {
+          change.then((hasChanged) => {
+            this.transitioning = false; 
+            hasChanged && finish(next);
+          })
+        }else {
+          this.transitioning = false;
+          change && finish(next);
         }
       });
     } else {
