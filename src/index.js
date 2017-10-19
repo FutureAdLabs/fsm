@@ -1,7 +1,7 @@
 /* @flow -*- mode: flow -*- */
 
-import Promise from "erx/promise";
-import * as erx from "erx";
+import Promise from "@adludio/erx/promise";
+import * as erx from "@adludio/erx";
 
 type State = string;
 type Event = string;
