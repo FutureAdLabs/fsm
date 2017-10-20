@@ -1,7 +1,7 @@
 /* @flow -*- mode: flow -*- */
 
-import Promise from "@adludio/erx/promise";
-import * as erx from "@adludio/erx";
+// import type Promise from "@adludio/erx/promise";
+var erx = require("@adludio/erx");
 
 type State = string;
 type Event = string;
@@ -13,7 +13,7 @@ type EntryFn<A> = (m: Machine, data: A) => ?State;
 type EntryTable = { [state: State]: EntryFn };
 
 function p<A>(val: A | Promise<A>): Promise<A> {
-  return (val instanceof Promise) ? val : Promise.resolved(val);
+  return (val.then && typeof val.then === "function") ? val : Promise.resolved(val);
 }
 
 function match(table: TransitionTable, s1: State, s2: State): ?TransitionFn {
@@ -59,12 +59,14 @@ export default class Machine extends erx.Bus<State> {
     if (tFn != null) {
       this.transitioning = true;
       p(tFn(this, data)).then((change) => {
-         if (change instanceof Promise) {
+        if (change instanceof Promise) {
+          console.log("THIS IS RIGHT!")
           change.then((hasChanged) => {
             this.transitioning = false; 
             hasChanged && finish(next);
           })
         }else {
+          console.log("THIS IS WRONG!", change);
           this.transitioning = false;
           change && finish(next);
         }
