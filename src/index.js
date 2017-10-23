@@ -1,6 +1,6 @@
 /* @flow -*- mode: flow -*- */
 
-// import type Promise from "@adludio/erx/promise";
+import Promise from "@adludio/erx/promise";
 var erx = require("@adludio/erx");
 
 type State = string;
@@ -59,17 +59,8 @@ export default class Machine extends erx.Bus<State> {
     if (tFn != null) {
       this.transitioning = true;
       p(tFn(this, data)).then((change) => {
-        if (change instanceof Promise) {
-          console.log("THIS IS RIGHT!")
-          change.then((hasChanged) => {
-            this.transitioning = false; 
-            hasChanged && finish(next);
-          })
-        }else {
-          console.log("THIS IS WRONG!", change);
-          this.transitioning = false;
-          change && finish(next);
-        }
+        this.transitioning = false;
+        change && finish(next);
       });
     } else {
       finish(next);
