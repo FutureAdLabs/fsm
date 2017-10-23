@@ -1,7 +1,7 @@
 /*global describe, it */
 
 import assert from "assert";
-import * as erx from "erx";
+import * as erx from "@adludio/erx";
 
 import FSM from "../src";
 
