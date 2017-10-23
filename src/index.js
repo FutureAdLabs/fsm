@@ -13,7 +13,7 @@ type EntryFn<A> = (m: Machine, data: A) => ?State;
 type EntryTable = { [state: State]: EntryFn };
 
 function p<A>(val: A | Promise<A>): Promise<A> {
-  return (val.then && typeof val.then === "function") ? val : Promise.resolved(val);
+  return (val && val.then && typeof val.then === "function") ? val : Promise.resolved(val);
 }
 
 function match(table: TransitionTable, s1: State, s2: State): ?TransitionFn {
