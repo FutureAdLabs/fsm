@@ -1,7 +1,7 @@
 /* @flow -*- mode: flow -*- */
 
 import Promise from "@adludio/erx/promise";
-var erx = require("@adludio/erx");
+import * as erx from "@adludio/erx";
 
 type State = string;
 type Event = string;
