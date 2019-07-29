@@ -58,7 +58,10 @@ The *onExit* function is used for clearing up unwanted ... stuff; nodes, compone
 ## Old FSM 1.01 -> New ?
 
 A small but significant refactor of FSM was required in order to increase the flexibility in order to deal with edge cases and ensure predictable behaviour, in preparation for the creation of a new Studio product harnessing a new programmatically generated json structure (cyan-json).
-An instance of FSM was previously constructed with 3 props; new FSM(states(triggers), transitions, entries). First of all "states" was renamed to "triggers" to better describe their use, and the underlying logic tweaked to allow for passing of state events, or the state names themselves. Secondly the "transitions" object was merged with entries and made specific to a single state in the form of hooks (onEnter, onExit), rather than being a function that is called when navigating between two states. Third, code that would normally be run in the entry function could be split in terms of the concerns into animations (that must happen during the state) and everything else. This nicely provides a standard so that states correspond indirectly to the animations inside them. (That was the worst sentence ever) 
+An instance of FSM was previously constructed with 3 props; new FSM(states(triggers), transitions, entries). 
+First of all "states" was renamed to "triggers" to better describe their use, and the underlying logic tweaked to allow for passing of state events, or the state names themselves.
+Secondly the "transitions" object was merged with entries and made specific to a single state in the form of hooks (onEnter, onExit), rather than being a function that is called when navigating between two states.
+Third, code that would normally be run in the entry function could be split in terms of the concerns into animations (that must happen during the state) and everything else. This nicely provides a standard so that states correspond indirectly to the animations inside them. (That was the worst sentence ever) 
 
 ## What we need to think about during the upgrading process
 
