@@ -49,9 +49,9 @@ States are broken down into three parts:
 - *onEnter*
 - *onExit*
 
-The *onEnter* function is used to "set-up" the scene for the next state and ensure that code can be run before the animations even occur. Examples of how this could be useful include, adding a node that you want to animate in the state, or adding a component to a node (in reality, adding a nodeId to the systems object) so that the user can interact with that node and trigger a state change.
-
 The *animations* function is used for determining which animations will play in that state. The update.stream function is thennable, allowing you to chain animations if you please. An onAnimationEvent is pushed to cyan's eventBus automatically after every animation has concluded, which may or may not be caught with an appropriate trigger.
+
+The *onEnter* function is used to "set-up" the scene for the next state and ensure that code can be run before the animations even occur. Examples of how this could be useful include, adding a node that you want to animate in the state, or adding a component to a node (in reality, adding a nodeId to the systems object) so that the user can interact with that node and trigger a state change.
 
 The *onExit* function is used for clearing up unwanted ... stuff; nodes, components, clearing Timeouts etc. It is fired whenever you exit the attached state.
 
@@ -70,4 +70,5 @@ Third, code that would normally be run in the entry function could be split in t
 
 - Dev builders should be encouraged to use update.goTo() instead of m.goto() to avoid having stale data in the next state.
 - Dev builders need to adhere to new data structure, and should be encouraged to use animations in animations object, and to make use of the hooks to prepare and cleanup the scene.
+- Dev builds currently use asterisk for cyan dependency (latest), and so any cyan adunits built in the past would use latest version...does this mean latest version always has to backwards compatible? Are we gonna create a separate tag and further increase complexity regarding which cyan being used depending on the application?
 ...
