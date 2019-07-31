@@ -6,7 +6,7 @@ import * as erx from "@adludio/erx";
 type State = string;
 type Event = string;
 type EventFn<A> = (m: Machine, data: A) => ?State;
-type StateTable = { [state: State]: { [event: Event]: EventFn } };
+type TriggerTable = { [state: State]: { [event: Event]: EventFn } };
 type TransitionFn<A> = (m: Machine, data: A) => boolean | Promise<boolean>;
 type TransitionTable = { [state1: State]: { [state2: State]: TransitionFn } };
 type EntryFn<A> = (m: Machine, data: A) => ?State;
@@ -26,15 +26,15 @@ function match(table: TransitionTable, s1: State, s2: State): ?TransitionFn {
 
 export default class Machine extends erx.Bus<State> {
   state: State;
-  states: StateTable;
+  triggers: TriggerTable;
   transitions: TransitionTable;
   entries: EntryTable;
   transitioning: boolean;
 
-  constructor(states: StateTable, transitions?: TransitionTable, entries?: EntryTable) {
+  constructor(triggers: TriggerTable, transitions?: TransitionTable, entries?: EntryTable) {
     super();
     this.state = null;
-    this.states = states;
+    this.triggers = triggers;
     this.transitions = (transitions != null) ? transitions : {};
     this.entries = (entries != null) ? entries : {};
     this.transitioning = false;
@@ -69,17 +69,26 @@ export default class Machine extends erx.Bus<State> {
   }
 
   send(event: Event, data: any): boolean {
-    if (!this.state || !this.states[this.state] || this.transitioning) {
+    if (!this.state || this.transitioning) {
       return false;
     }
-    const prev: State = this.state;
-    const table: StateTable = this.states[this.state];
-    const fn: any = table[event]; // FIXME How to get Flow to accept this without the `any` here?
-    const next: ?State = fn ? fn(this, data) : null;
-    if (next != null) {
-      return this.goTo(next, data);
+
+    const prevTrigger: State = this.state;
+    const triggers: TriggerTable = this.triggers;
+    let nextState: ?State = null;
+    if (triggerExists(prevTrigger, triggers)) {
+      nextState = triggers[prevTrigger][event](this, data)
     }
-    return true;
+
+    const entries = this.entries;
+    if (entryExists(entries, event)) {
+      nextState = event
+    }
+
+    if (!nextState) {
+      return true
+    }
+    return this.goTo(nextState, data);
   }
 
   whileIn<A>(stream: erx.Stream<A>, state: string): erx.Stream<A> {
