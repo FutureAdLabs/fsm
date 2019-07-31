@@ -41,24 +41,29 @@ export default class Machine extends erx.Bus<State> {
   }
 
   goTo(next: State, data?: any): boolean {
+    const currEntries = this.transitions[this.state] || null;
+    const nextEntries = this.transitions[next] || null;
+
     if (this.transitioning) {
       return false;
     }
     const finish = (next) => {
       this.state = next;
       this.push(next);
-      const eFn = this.entries[next];
-      if (eFn != null) {
-        next = eFn(this, data);
+      if (nextEntries != null && nextEntries.before) {
+        next = p(nextEntries.before(this, data)).then(function () {
+          if(nextEntries.animations) {
+            nextEntries.animations(this, data);
+          }
+        });
         if (typeof next === "string") {
           this.goTo(next, data);
         }
       }
     };
-    const tFn = match(this.transitions, this.state, next);
-    if (tFn != null) {
+    if(currEntries != null && currEntries.after) {
       this.transitioning = true;
-      p(tFn(this, data)).then((change) => {
+      p(currEntries.after(this, data)).then(function (change) {
         this.transitioning = false;
         change && finish(next);
       });
