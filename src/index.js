@@ -5,12 +5,16 @@ import * as erx from "@adludio/erx";
 
 type State = string;
 type Event = string;
+type Animations = string;
+type Hooks = string;
 type EventFn<A> = (m: Machine, data: A) => ?State;
 type TriggerTable = { [state: State]: { [event: Event]: EventFn } };
 type TransitionFn<A> = (m: Machine, data: A) => boolean | Promise<boolean>;
 type TransitionTable = { [state1: State]: { [state2: State]: TransitionFn } };
-type EntryFn<A> = (m: Machine, data: A) => ?State;
-type EntryTable = { [state: State]: EntryFn };
+type StateFn<A> = (m: Machine, data: A) => ?State;
+type AnimationFn<A> = (m: Machine, data: A) => ?Animations | Promise<?Animations>;
+type HooksFn<A> = (m: Machine, data: A) => ?Hooks | Promise<?Hooks>;
+type StatesTable = { [state: State]: { animations?: AnimationFn, onEnter?: HooksFn, onExit?: HooksFn } };
 
 function p<A>(val: A | Promise<A>): Promise<A> {
   return (val && val.then && typeof val.then === "function") ? val : Promise.resolved(val);
@@ -27,22 +31,20 @@ function match(table: TransitionTable, s1: State, s2: State): ?TransitionFn {
 export default class Machine extends erx.Bus<State> {
   state: State;
   triggers: TriggerTable;
-  transitions: TransitionTable;
-  entries: EntryTable;
+  states: StatesTable;
   transitioning: boolean;
 
-  constructor(triggers: TriggerTable, transitions?: TransitionTable, entries?: EntryTable) {
+  constructor(triggers: TriggerTable, states?: StatesTable) {
     super();
     this.state = null;
     this.triggers = triggers;
-    this.transitions = (transitions != null) ? transitions : {};
-    this.entries = (entries != null) ? entries : {};
+    this.states = (states != null) ? states : {};
     this.transitioning = false;
   }
 
   goTo(next: State, data?: any): boolean {
-    const currEntries = this.transitions[this.state] || null;
-    const nextEntries = this.transitions[next] || null;
+    const currState: ?StatesTable = this.states[this.state] || null;
+    const nextState: ?StatesTable = this.states[next] || null;
 
     if (this.transitioning) {
       return false;
@@ -50,24 +52,35 @@ export default class Machine extends erx.Bus<State> {
     const finish = (next) => {
       this.state = next;
       this.push(next);
-      if (nextEntries != null && nextEntries.before) {
-        next = p(nextEntries.before(this, data)).then(function () {
-          if(nextEntries.animations) {
-            nextEntries.animations(this, data);
-          }
-        });
+      
+      if(nextState != null) {
+        this.transitioning = true;
+        if (nextState.onEnter) {        
+          next = p(nextState.onEnter(this, data)).then(function () {
+            this.transitioning = false;
+            if(nextState.animations) {
+              nextState.animations(this, data);
+            }
+          });
+        } 
+        else if (nextState.animations) {
+          next = nextState.animations(this, data);
+        }
         if (typeof next === "string") {
           this.goTo(next, data);
         }
       }
     };
-    if(currEntries != null && currEntries.after) {
+
+    if(currState != null && currState.onExit) {
       this.transitioning = true;
-      p(currEntries.after(this, data)).then(function (change) {
+      p(currState.onExit(this, data)).then(function () {
         this.transitioning = false;
-        change && finish(next);
+        finish(next);
       });
-    } else {
+    }
+
+    else {
       finish(next);
     }
     return true;
