@@ -28,6 +28,14 @@ function match(table: TransitionTable, s1: State, s2: State): ?TransitionFn {
   return tPrime[s2] || tPrime["*"];
 }
 
+function triggerExists(triggers: TriggerTable, trigger: State): ?Boolean {
+  return !!triggers[event]
+}
+
+function stateExists(states: StatesTable, event: Event): ?Boolean {
+  return !!states[event]
+}
+
 export default class Machine extends erx.Bus<State> {
   state: State;
   triggers: TriggerTable;
@@ -98,8 +106,8 @@ export default class Machine extends erx.Bus<State> {
       nextState = triggers[prevTrigger][event](this, data)
     }
 
-    const entries = this.entries;
-    if (entryExists(entries, event)) {
+    const states = this.states;
+    if (stateExists(states, event)) {
       nextState = event
     }
 
