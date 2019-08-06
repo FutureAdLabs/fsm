@@ -20,12 +20,12 @@ function p<A>(val: A | Promise<A>): Promise<A> {
   return (val && val.then && typeof val.then === "function") ? val : Promise.resolved(val);
 }
 
-function match(table: TransitionTable, s1: State, s2: State): ?TransitionFn {
-  const tPrime = table[s1] || table["*"];
-  if (tPrime == null) {
-    return null;
-  }
-  return tPrime[s2] || tPrime["*"];
+function triggerExists(triggers: TriggerTable, trigger: State, event: Event): Boolean {
+  return !!triggers[trigger] && !!triggers[trigger][event]
+}
+
+function stateExists(states: StatesTable, event: Event): Boolean {
+  return !!states[event]
 }
 
 export default class Machine extends erx.Bus<State> {
@@ -56,7 +56,7 @@ export default class Machine extends erx.Bus<State> {
       if(nextState != null) {
         this.transitioning = true;
         if (nextState.onEnter) {        
-          next = p(nextState.onEnter(this, data)).then(function () {
+          next = p(nextState.onEnter(this, data)).then(() => {
             this.transitioning = false;
             if(nextState.animations) {
               nextState.animations(this, data);
@@ -74,7 +74,7 @@ export default class Machine extends erx.Bus<State> {
 
     if(currState != null && currState.onExit) {
       this.transitioning = true;
-      p(currState.onExit(this, data)).then(function () {
+      p(currState.onExit(this, data)).then(() => {
         this.transitioning = false;
         finish(next);
       });
@@ -94,12 +94,12 @@ export default class Machine extends erx.Bus<State> {
     const prevTrigger: State = this.state;
     const triggers: TriggerTable = this.triggers;
     let nextState: ?State = null;
-    if (triggerExists(prevTrigger, triggers)) {
+    if (triggerExists(triggers, prevTrigger, event)) {
       nextState = triggers[prevTrigger][event](this, data)
     }
 
-    const entries = this.entries;
-    if (entryExists(entries, event)) {
+    const states = this.states;
+    if (stateExists(states, event)) {
       nextState = event
     }
 
