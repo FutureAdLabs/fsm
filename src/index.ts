@@ -65,7 +65,7 @@ export default class Machine extends erx.Bus<StateName> {
     const nextState: State = this.states[next];
 
     if (this.transitioning) { return false }
-    if(!nextState) { throw new Error(`Tried to reach non-existant state: "${nextState}"`) }
+    if(!nextState) { throw new Error(`FSM Error: Tried to reach non-existant state: "${nextState}"`) }
 
     const finish = (next: StateName) => {
       
