@@ -100,5 +100,7 @@
       "super": true
     }
   },
-  "dependencies": {}
+  "dependencies": {
+    "@adludio/erx": "^3.6.1"
+  }
 }
