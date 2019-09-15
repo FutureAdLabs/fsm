@@ -1,44 +1,54 @@
-/*global describe, it */
+import FSM from "../src"
+import * as erx from "@adludio/erx"
 
-import assert from "assert";
-import * as erx from "@adludio/erx";
+import { expect } from "chai"
 
-import FSM from "../src";
-
-function asap(fn) {
+function asap(fn: (...args: any[]) => any) {
   setTimeout(fn, 1);
 }
 
-function assertSeq(c, expected, done) {
+function assertSeq(c: erx.Stream<string>, expected: any[], done: () => void) {
   const acc = [];
-  c.subscribe((v) => acc.push(v), null, () => {
-    assert.deepEqual(acc, expected);
+  c.subscribe((v: any) => acc.push(v), null, () => {
+    expect(acc).to.deep.equal(expected)
     done();
   });
 }
 
-function turnstile(cb) {
-  const fsm = new FSM({
-    "locked": {
-      "coin": () => "open"
-    },
-    "open": {
-      "push": () => "locked",
-      "coin": () => "open"
-    }
-  }, {
-    "locked": {
-      "open": () => cb("locked->open"),
-      "locked": () => cb("open->locked")
-    },
-    "open": {
-      "locked": () => cb("open->locked"),
-      "open": () => cb("open->open")
-    }
-  });
-  fsm.goTo("locked");
-  return fsm;
+const ts = (e: string, s: string, cb) => {
+  return (m) => {
+    cb(`${e}_${s}_from_${m.lastState || "nowhere"}`)
+    return true
+  }
 }
+
+function turnstile (cb: (f: string) => boolean) {
+  const fsm = new FSM(
+    {
+      "open": {
+        onEnter: ts("entering", "open", cb),
+        onExit: ts("exiting", "open", cb),
+      },
+      "locked": {
+        onEnter: ts("entering", "locked", cb),
+        onExit: ts("exiting", "locked", cb),
+      }
+    },
+    {
+      "open": {
+        "push": () => "locked",
+        "coin": () => "open"
+      },
+      "locked": {
+        "coin": () => "open"
+      }
+    }
+  )
+
+  fsm.goTo("locked")
+  return fsm
+}
+
 
 describe("finite state machine", () => {
   it("the turnstile machine behaves as expected", (done) => {
@@ -60,7 +70,16 @@ describe("finite state machine", () => {
       });
     });
     assertSeq(m.take(3), ["open", "open", "locked"], () => {
-      assert.deepEqual(changes, ["locked->open", "open->open", "open->locked"]);
+      expect(changes).to.deep.equal([
+        "entering_locked_from_nowhere",
+        "exiting_locked_from_nowhere",
+        "entering_open_from_locked",
+        "exiting_open_from_locked",
+        "entering_open_from_open",
+        "exiting_open_from_open",
+        "entering_locked_from_open"
+      ]
+      )
       done();
     });
   });
@@ -82,4 +101,5 @@ describe("finite state machine", () => {
     setTimeout(() => { c.push(3); c.close(); }, 15);
     assertSeq(m.until(c, ["open"]), [1, 2], done);
   });
-});
+})
+
