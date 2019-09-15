@@ -18,6 +18,7 @@
   },
   "author": "Adludio Ltd",
   "license": "Apache-2.0+",
+  "main": "src/index.js",
   "bugs": {
     "url": "https://github.com/futureadlabs/fsm/issues"
   },
