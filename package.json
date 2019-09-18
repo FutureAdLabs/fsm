@@ -106,6 +106,6 @@
     }
   },
   "dependencies": {
-    "@adludio/erx": "^3.6.1"
+    "@adludio/erx": "^4.0.0"
   }
 }
