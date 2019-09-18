@@ -1,6 +1,6 @@
 {
   "name": "@adludio/fsm",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "description": "Finite state machines over erx",
   "scripts": {
     "prepublishOnly": "npm run test && npm run build",
