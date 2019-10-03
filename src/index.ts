@@ -60,7 +60,7 @@ export default class Machine extends erx.Bus<StateName> {
     this.transitioning = false;
   }
 
-  goTo(next: StateName, data?: any): boolean {
+  goTo(next: StateName, getState?: Function): boolean {
     const currState: State = this.states[this.state];
     const nextState: State = this.states[next];
 
@@ -77,20 +77,20 @@ export default class Machine extends erx.Bus<StateName> {
       this.transitioning = !!nextState.onEnter;
 
       if (nextState.onEnter) {
-        p(nextState.onEnter(this, data)).then(() => {
+        p(nextState.onEnter(this, getState)).then(() => {
           this.transitioning = false;
-          if(nextState.animations) { return nextState.animations(this, data) }
+          if(nextState.animations) { return nextState.animations(this, getState) }
         });
       } else if (nextState.animations) {
-        nextState.animations(this, data)
+        nextState.animations(this, getState)
       } if (typeof next === "string") {
-        this.goTo(next, data);
+        this.goTo(next, getState);
       }
     };
 
     if(currState && currState.onExit) {
       this.transitioning = true;
-      p(currState.onExit(this, data)).then(() => {
+      p(currState.onExit(this, getState)).then(() => {
         this.transitioning = false;
         finish(next);
       });
@@ -101,7 +101,7 @@ export default class Machine extends erx.Bus<StateName> {
     return true;
   }
 
-  send(event: EventID, data?: any): boolean {
+  send(event: EventID, getState?: Function): boolean {
     if (!this.state || this.transitioning) { return false }
 
     const prevTrigger: StateName = this.state
@@ -110,7 +110,7 @@ export default class Machine extends erx.Bus<StateName> {
     let nextState: string | void;
 
     if (triggerExists(triggers, prevTrigger, event)) {
-      nextState = triggers[prevTrigger][event](this, data)
+      nextState = triggers[prevTrigger][event](this, getState)
     }
 
     const states = this.states;
@@ -123,7 +123,7 @@ export default class Machine extends erx.Bus<StateName> {
       return true
     }
 
-    return this.goTo(nextState, data);
+    return this.goTo(nextState, getState);
   }
 
   whileIn<A>(stream: erx.Stream<A>, state: StateName): erx.Stream<A> {
