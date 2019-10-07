@@ -7,7 +7,7 @@ type EventID = string;
 type Animations = string;
 type Hooks = string;
 
-export type EventFn<A> = (m: Machine, data: A) => StateName | void;
+export type EventFn<S> = (m: Machine<S>, getState?: S) => StateName | void;
 
 export interface StatesTable {
   [StateName: string]: State
@@ -27,8 +27,8 @@ export interface State {
   onExit?: HooksFn<any>
 } 
 
-type AnimationFn<A> = (m: Machine, data: A) => boolean | Promise<boolean>
-type HooksFn<A> = (m: Machine, data: A) => boolean | Promise<boolean>;
+type AnimationFn<S> = (m: Machine<S>, getState?: S) => boolean | Promise<boolean>
+type HooksFn<S> = (m: Machine<S>, getState?: S) => boolean | Promise<boolean>;
 
 function p<A>(val: A | Promise<A>): Promise<A> {
   return (val instanceof Promise ? val : Promise.resolved(val))
@@ -42,7 +42,7 @@ function stateExists(states: StatesTable, event: EventID): Boolean {
   return !!states[event]
 }
 
-export default class Machine extends erx.Bus<StateName> {
+export default class Machine<S> extends erx.Bus<StateName> {
   state: StateName;
   lastState: StateName;
   triggers: TriggerTable;
@@ -60,7 +60,7 @@ export default class Machine extends erx.Bus<StateName> {
     this.transitioning = false;
   }
 
-  goTo(next: StateName, data?: any): boolean {
+  goTo(next: StateName, getState?: (() => S)): boolean {
     const currState: State = this.states[this.state];
     const nextState: State = this.states[next];
 
@@ -77,20 +77,20 @@ export default class Machine extends erx.Bus<StateName> {
       this.transitioning = !!nextState.onEnter;
 
       if (nextState.onEnter) {
-        p(nextState.onEnter(this, data)).then(() => {
+        p(nextState.onEnter(this, getState)).then(() => {
           this.transitioning = false;
-          if(nextState.animations) { return nextState.animations(this, data) }
+          if(nextState.animations) { return nextState.animations(this, getState) }
         });
       } else if (nextState.animations) {
-        nextState.animations(this, data)
+        nextState.animations(this, getState)
       } if (typeof next === "string") {
-        this.goTo(next, data);
+        this.goTo(next, getState);
       }
     };
 
     if(currState && currState.onExit) {
       this.transitioning = true;
-      p(currState.onExit(this, data)).then(() => {
+      p(currState.onExit(this, getState)).then(() => {
         this.transitioning = false;
         finish(next);
       });
@@ -101,7 +101,7 @@ export default class Machine extends erx.Bus<StateName> {
     return true;
   }
 
-  send(event: EventID, data?: any): boolean {
+  send(event: EventID, getState?: (() => S)): boolean {
     if (!this.state || this.transitioning) { return false }
 
     const prevTrigger: StateName = this.state
@@ -110,7 +110,7 @@ export default class Machine extends erx.Bus<StateName> {
     let nextState: string | void;
 
     if (triggerExists(triggers, prevTrigger, event)) {
-      nextState = triggers[prevTrigger][event](this, data)
+      nextState = triggers[prevTrigger][event](this, getState)
     }
 
     const states = this.states;
@@ -123,7 +123,7 @@ export default class Machine extends erx.Bus<StateName> {
       return true
     }
 
-    return this.goTo(nextState, data);
+    return this.goTo(nextState, getState);
   }
 
   whileIn<A>(stream: erx.Stream<A>, state: StateName): erx.Stream<A> {
