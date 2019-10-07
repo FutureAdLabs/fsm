@@ -7,7 +7,7 @@ type EventID = string;
 type Animations = string;
 type Hooks = string;
 
-export type EventFn<A> = (m: Machine, data: A) => StateName | void;
+export type EventFn<A> = (m: Machine<B>, getState?: A) => StateName | void;
 
 export interface StatesTable {
   [StateName: string]: State
@@ -27,8 +27,8 @@ export interface State {
   onExit?: HooksFn<any>
 } 
 
-type AnimationFn<A> = (m: Machine, data: A) => boolean | Promise<boolean>
-type HooksFn<A> = (m: Machine, data: A) => boolean | Promise<boolean>;
+type AnimationFn<A> = (m: Machine<B>, getState?: A) => boolean | Promise<boolean>
+type HooksFn<A> = (m: Machine<B>, getState?: A) => boolean | Promise<boolean>;
 
 function p<A>(val: A | Promise<A>): Promise<A> {
   return (val instanceof Promise ? val : Promise.resolved(val))
@@ -42,7 +42,7 @@ function stateExists(states: StatesTable, event: EventID): Boolean {
   return !!states[event]
 }
 
-export default class Machine extends erx.Bus<StateName> {
+export default class Machine<S> extends erx.Bus<StateName> {
   state: StateName;
   lastState: StateName;
   triggers: TriggerTable;
@@ -60,7 +60,7 @@ export default class Machine extends erx.Bus<StateName> {
     this.transitioning = false;
   }
 
-  goTo(next: StateName, getState?: Function): boolean {
+  goTo(next: StateName, getState?: (() => S)): boolean {
     const currState: State = this.states[this.state];
     const nextState: State = this.states[next];
 
@@ -101,7 +101,7 @@ export default class Machine extends erx.Bus<StateName> {
     return true;
   }
 
-  send(event: EventID, getState?: Function): boolean {
+  send(event: EventID, getState?: (() => S)): boolean {
     if (!this.state || this.transitioning) { return false }
 
     const prevTrigger: StateName = this.state
