@@ -7,7 +7,7 @@ type EventID = string;
 type Animations = string;
 type Hooks = string;
 
-export type EventFn<A> = (m: Machine<B>, getState?: A) => StateName | void;
+export type EventFn<S> = (m: Machine<S>, getState?: S) => StateName | void;
 
 export interface StatesTable {
   [StateName: string]: State
@@ -27,8 +27,8 @@ export interface State {
   onExit?: HooksFn<any>
 } 
 
-type AnimationFn<A> = (m: Machine<B>, getState?: A) => boolean | Promise<boolean>
-type HooksFn<A> = (m: Machine<B>, getState?: A) => boolean | Promise<boolean>;
+type AnimationFn<S> = (m: Machine<S>, getState?: S) => boolean | Promise<boolean>
+type HooksFn<S> = (m: Machine<S>, getState?: S) => boolean | Promise<boolean>;
 
 function p<A>(val: A | Promise<A>): Promise<A> {
   return (val instanceof Promise ? val : Promise.resolved(val))
