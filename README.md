@@ -25,12 +25,13 @@ Similarly if the trigger for the "win" state is
 `"click:node2:up" => "postWin"`
 a *clickUp* event for *node2* will result in navigating to the *postWin* state.
 
-States
+**States**
 - start
 - win
 - postWin
 
-Triggers
+**Triggers**
+
 Start
 - `"click:node1:up" => "win"`
 
@@ -43,13 +44,14 @@ However, not all adunits will have a linear user journey, and navigation between
 
 In this example, there are a number of different triggers associated with each state, allowing navigation to and from any state as defined by separate triggers. This diagram is showing all the different combinations by which you can navigate between states, for example while in the "start" state you can go to the "win1" state, and while in the "win1" state, you can go back to the "start" state again.
 
-States
+**States**
 - start
 - win1
 - win2
 - postWin
 
-Triggers
+**Triggers**
+
 Start
 - `"click:node1:up" => "win1"`
 - `"click:node5:up" => "win2"`
@@ -80,9 +82,11 @@ When initialising the machine, the FSM takes two parameters:
 As a recap:
 
 The *Triggers* object is a set of conditions that determine whether or not the machine will navigate to the next state. (when/how)
+
 The *States* object is what happens while in each respective state. (what)
 
 As a wise man once said; 
+
 ”Watch this” (triggers)
 ”Do that” (states)
 
@@ -163,7 +167,7 @@ Recap/example:
 - then runs states.win.animations
 - returns true
 
-Note: When building an adunit as a dev, it is recommended that you use the wrapper functions update.state or update.goTo located in cyan instead of directly accessing the methods attached to the machine, as it will pass through the events.fold in cyan's core, which has access to our scene and thus a getState function with an updated state.
+**Note: When building an adunit as a dev, it is recommended that you use the wrapper functions update.state or update.goTo located in cyan instead of directly accessing the methods attached to the machine, as it will pass through the events.fold in cyan's core, which has access to our scene and thus a getState function with an updated state.**
 
 ### send(event: EventID, getState?: (() => S)): boolean
 - "event" must be a string specifying the trigger you want to check for, which in itself contains the name of the state to navigate to. OR it can also be the state you want to navigate to, similar to the goTo function
@@ -188,7 +192,7 @@ Recap/example:
 - Trigger function is called, giving the nextState ("win")
 - Calls goTo function with the nextState and returns the result
 
-Note: When building an adunit as a dev, it is recommended that you use the wrapper functions update.state or update.goTo located in cyan instead of directly accessing the methods attached to the machine (m.goTo and m.send), as it will pass through the events.fold in cyan's core, which has access to our scene and thus a getState function with an updated state.
+**Note: When building an adunit as a dev, it is recommended that you use the wrapper functions update.state or update.goTo located in cyan instead of directly accessing the methods attached to the machine (m.goTo and m.send), as it will pass through the events.fold in cyan's core, which has access to our scene and thus a getState function with an updated state.**
 
 ### whileIn<A>(stream: erx.Stream<A>, state: StateName): erx.Stream<A>
 - "stream" is any stream you want to impose a restriction against in relation to the machine stream's current value/currentState
