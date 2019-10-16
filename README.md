@@ -5,15 +5,21 @@ A finite state machine using erx
 
 ### Overview
 
-The objective of a finite state machine (FSM) to introduce the concept that something can be in only one "current state" at a given time. Specifically, our FSM is responsible for maintaining the current state of an adunit and triggering navigation to other states. It provides a programmatic way of describing a user journey in code when running of an adunit; what happens and when it happens.
+The objective of a finite state machine (FSM) is to introduce the concept that something can be in only one "current state" at a given time. Specifically, our FSM is responsible for maintaining the current state of an adunit and triggering navigation to other states. It provides a programmatic way of describing a user journey in code when running of an adunit; what happens and when it happens.
 
-An adunit starts in an initial "state", and has to be "triggered" by an event, be it a user-interaction (tapping on the screen etc) or triggered manually by a specific piece of code. Generally, the majority of adunits created by Adludio follow a set of user interactions in a linear user journey. An example of a typical user journey is shown below:
+An adunit starts in an initial "state", and has to be "triggered" by an event, be it a user-interaction (tapping on the screen etc) or triggered programmatically by a specific piece of code. Generally, the majority of adunits created by Adludio follow a set of user interactions in a linear user journey. An example of a typical user journey is shown below:
 
 ![](./static/LinearFsm.png)
 
 The adunit begins in the "start" state and runs whatever code is specified to run in the "start" state. It will stay in the "start" state until an event is fired that matches the conditions specified in the "triggers" for the "start" state.
 
-So for example, the trigger for the "start" state is `"click:node1:up" => "win"`. This means that while the user is in the "start" state, if *node1*" (a layer in the adunit) receives the *clickUp* event, then navigate to the *win* state. When entering the "win" state, the code associated with the win state will run. Similarly if the trigger for the "win" state is `"click:node2:up" => "postWin"`, a *clickUp* event for *node2* will result in navigating to the *postWin* state.
+So for example, the trigger for the "start" state could be
+`"click:node1:up" => "win"`
+This means that while the user is in the "start" state, if *node1*" (a layer in the adunit) receives the *clickUp* event, then navigate to the *win* state. When entering the "win" state, the code associated with the win state will run. 
+
+Similarly if the trigger for the "win" state is 
+`"click:node2:up" => "postWin"`
+a *clickUp* event for *node2* will result in navigating to the *postWin* state.
 
 States
 - start
@@ -26,7 +32,7 @@ Start
 Win
 - `"click:node2:up" => "postWin"`
 
-However, not all adunits will have a linear user journey, and can navigate between states determined by a multiple of triggers.
+However, not all adunits will have a linear user journey, and navigation between states can be determined by a multiple of triggers.
 
 ![](./static/NonLinearFsm.png)
 
@@ -114,11 +120,11 @@ States are broken down into three parts:
 - *onEnter*
 - *onExit*
 
-The *animations* function is used for determining which animations will play in that state. The update.stream function is thennable, allowing you to chain animations if you please. An onAnimationEvent is pushed to cyan's eventBus automatically after every animation has concluded, which may or may not be caught with an appropriate trigger.
+The *animations* function is used for determining which animations will play in that state. The update.stream function is a promise, allowing you to chain animations in sequence if you please. An onAnimationEvent is pushed to cyan's eventBus automatically after every animation has concluded, which can be caught with an appropriate trigger.
 
 The *onEnter* function is used to "set-up" the scene for the next state and ensure that code can be run before the animations even occur. Examples of how this could be useful include, adding a node that you want to animate in the state, or adding a component to a node (in reality, adding a nodeId to the systems object) so that the user can interact with that node and trigger a state change.
 
-The *onExit* function is used for clearing up unwanted ... stuff; nodes, components, clearing Timeouts etc. It is fired whenever you exit the attached state.
+The *onExit* function is used for clearing up unwanted ... stuff; nodes, components, clearing Timeouts etc. It is fired whenever you exit the current state.
 
 ## API
 
@@ -127,7 +133,7 @@ The FSM exposes two methods that allow you to navigate between states:
 - send
 
 ### goTo(next: StateName, getState?: (() => S)): boolean
-- "next" must be a string specifying the name of the state you want to navigate to and is required
+- "next" must be a string specifying the name of the state you want to navigate to
 - "getState" is an optional function that you can pass that will return the state when called
 - returns a boolean, which indicates whether it has succeeded in navigating to the specified state
 
