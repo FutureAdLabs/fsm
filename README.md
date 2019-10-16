@@ -1,5 +1,5 @@
 # fsm
-A finite state machine using erx
+A finite state machine using erx https://www.npmjs.com/package/@adludio/erx
 
 ## Overview and structure
 
