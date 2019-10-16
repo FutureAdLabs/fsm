@@ -33,6 +33,7 @@ States
 Triggers
 Start
 - `"click:node1:up" => "win"`
+
 Win
 - `"click:node2:up" => "postWin"`
 
