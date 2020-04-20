@@ -83,8 +83,6 @@ export default class Machine<S> extends erx.Bus<StateName> {
         });
       } else if (nextState.animations) {
         nextState.animations(this, getState)
-      } if (typeof next === "string") {
-        this.goTo(next, getState);
       }
     };
 
@@ -120,7 +118,7 @@ export default class Machine<S> extends erx.Bus<StateName> {
     }
 
     if (!nextState) {
-      return true
+      return false
     }
 
     return this.goTo(nextState, getState);
